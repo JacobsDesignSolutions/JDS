@@ -64,6 +64,7 @@ const translations: Translations = {
   form_company: { NL: 'Bedrijf', EN: 'Company' },
   form_email: { NL: 'E-mailadres', EN: 'Email Address' },
   form_message: { NL: 'Bericht / Projectgegevens', EN: 'Message / Project Details' },
+  form_file: { NL: 'Bestand toevoegen (Optioneel, Max 10MB)', EN: 'Add file (Optional, Max 10MB)' },
   form_placeholder: { NL: 'Vertel ons over uw project...', EN: 'Tell us about your project...' },
   form_submit: { NL: 'Verstuur Aanvraag', EN: 'Send Inquiry' },
   form_legal: { NL: 'Door dit te verzenden gaat u akkoord met onze geheimhoudingsvoorwaarden.', EN: 'By sending this you agree to our non-disclosure terms.' },

@@ -6,10 +6,34 @@ import { useLanguage } from "../contexts/LanguageContext";
 export default function Contact() {
   const { t } = useLanguage();
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+
+    try {
+      const response = await fetch("/api/send-email", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to send message");
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Form submission error:", err);
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -81,11 +105,17 @@ export default function Contact() {
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
+                {error && (
+                  <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 italic">
+                    {error}
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-brand-dark/40">{t("form_name")}</label>
                     <input 
                       required
+                      name="name"
                       type="text" 
                       className="w-full bg-ui-light border border-brand-green/10 rounded-xl px-4 py-3 text-sm focus:border-brand-green outline-none transition-colors"
                       placeholder="Jane Doe"
@@ -94,6 +124,7 @@ export default function Contact() {
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-brand-dark/40">{t("form_company")}</label>
                     <input 
+                      name="company"
                       type="text" 
                       className="w-full bg-ui-light border border-brand-green/10 rounded-xl px-4 py-3 text-sm focus:border-brand-green outline-none transition-colors"
                       placeholder="Acme Corp"
@@ -104,6 +135,7 @@ export default function Contact() {
                   <label className="text-[10px] font-bold uppercase tracking-widest text-brand-dark/40">{t("form_email")}</label>
                   <input 
                     required
+                    name="email"
                     type="email" 
                     className="w-full bg-ui-light border border-brand-green/10 rounded-xl px-4 py-3 text-sm focus:border-brand-green outline-none transition-colors"
                     placeholder="jane@company.com"
@@ -113,16 +145,36 @@ export default function Contact() {
                   <label className="text-[10px] font-bold uppercase tracking-widest text-brand-dark/40">{t("form_message")}</label>
                   <textarea 
                     required
+                    name="message"
                     rows={4}
                     className="w-full bg-ui-light border border-brand-green/10 rounded-xl px-4 py-3 text-sm focus:border-brand-green outline-none transition-colors"
                     placeholder={t("form_placeholder")}
                   ></textarea>
                 </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-brand-dark/40">{t("form_file")}</label>
+                  <input 
+                    name="attachment"
+                    type="file" 
+                    className="w-full bg-ui-light border border-brand-green/10 rounded-xl px-4 py-3 text-sm focus:border-brand-green outline-none transition-colors file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-brand-green/10 file:text-brand-green hover:file:bg-brand-green/20"
+                  />
+                </div>
                 <button
                   type="submit"
-                  className="w-full bg-brand-green text-white rounded-xl py-4 font-bold uppercase tracking-widest text-sm hover:bg-brand-dark transition-all flex items-center justify-center gap-3 shadow-lg shadow-brand-green/20"
+                  disabled={loading}
+                  className="w-full bg-brand-green text-white rounded-xl py-4 font-bold uppercase tracking-widest text-sm hover:bg-brand-dark disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 shadow-lg shadow-brand-green/20"
                 >
-                  {t("form_submit")} <Send size={18} />
+                  {loading ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                    />
+                  ) : (
+                    <>
+                      {t("form_submit")} <Send size={18} />
+                    </>
+                  )}
                 </button>
                 <p className="text-[10px] text-center text-brand-dark/30 font-mono italic">
                   {t("form_legal")}

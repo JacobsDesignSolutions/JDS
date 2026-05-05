@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { Link } from "react-router-dom";
 import { Info } from "lucide-react";
 import { useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -139,9 +140,9 @@ export default function Products() {
                 <p className="text-sm text-brand-dark/60 leading-relaxed mb-6 flex-grow italic">
                   "{product.desc[language]}"
                 </p>
-                <button className="flex items-center gap-2 text-xs font-bold text-brand-green uppercase tracking-widest group-hover:gap-4 transition-all">
+                <Link to="/contact" className="flex items-center gap-2 text-xs font-bold text-brand-green uppercase tracking-widest group-hover:gap-4 transition-all w-fit">
                   {t("prod_specs")} <Info size={14} />
-                </button>
+                </Link>
               </div>
             </motion.div>
           ))}
