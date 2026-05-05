@@ -13,7 +13,7 @@ export default function Home() {
       <section className="relative h-[80vh] flex items-center overflow-hidden bg-brand-dark">
         <div className="absolute inset-0 z-0">
           <img 
-            src="/3d_printer_nozzle_action.png" 
+            src="3d_printer_nozzle_action.png" 
             alt="3D Printing in Progress"
             className="w-full h-full object-cover opacity-40"
             referrerPolicy="no-referrer"
