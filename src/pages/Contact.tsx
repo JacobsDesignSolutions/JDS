@@ -22,8 +22,17 @@ export default function Contact() {
         body: formData,
       });
 
+      const contentType = response.headers.get("content-type");
+      let data;
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error("Non-JSON response received:", text);
+        throw new Error("Server returned an invalid response. Please check your internet connection and try again.");
+      }
+
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.error || "Failed to send message");
       }
 

@@ -7,7 +7,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: {
@@ -23,16 +22,22 @@ async function startServer() {
 
   // API Route for sending emails
   app.post("/api/send-email", upload.single("attachment"), async (req, res) => {
+    console.log("POST /api/send-email received");
     try {
       const { name, email, company, message } = req.body;
       const file = req.file;
 
-      if (!process.env.RESEND_API_KEY) {
-        console.error("RESEND_API_KEY is not defined");
-        return res.status(500).json({ error: "Email service not configured" });
+      const apiKey = process.env.RESEND_API_KEY;
+
+      if (!apiKey) {
+        console.error("RESEND_API_KEY is not defined in environment");
+        return res.status(500).json({ 
+          error: "Email service not configured. Please add RESEND_API_KEY to environment variables." 
+        });
       }
 
-      console.log(`Sending email from: ${name} (${email})`);
+      const resend = new Resend(apiKey);
+      console.log(`Attempting to send email from: ${name} (${email})`);
 
       const attachments = file ? [
         {
@@ -47,12 +52,15 @@ async function startServer() {
         subject: `New Inquiry from ${name} (${company || 'No Company'})`,
         replyTo: email,
         html: `
-          <h1>New Inquiry</h1>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Company:</strong> ${company || 'N/A'}</p>
-          <p><strong>Message:</strong></p>
-          <p>${message.replace(/\n/g, '<br>')}</p>
+          <div style="font-family: sans-serif; padding: 20px; color: #1a1a1a;">
+            <h1 style="color: #00D1FF;">New Project Inquiry</h1>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Company:</strong> ${company || 'N/A'}</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p><strong>Message:</strong></p>
+            <p style="white-space: pre-wrap;">${message}</p>
+          </div>
         `,
         attachments: attachments,
       });
@@ -62,11 +70,17 @@ async function startServer() {
         return res.status(400).json({ error: error.message });
       }
 
+      console.log("Email sent successfully:", data?.id);
       res.status(200).json({ success: true, data });
     } catch (err) {
-      console.error("Server Error:", err);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("Server Error in /api/send-email:", err);
+      res.status(500).json({ error: "Internal server error. Please check server logs." });
     }
+  });
+
+  // Catch-all for API routes to ensure they always return JSON
+  app.all("/api/*", (req, res) => {
+    res.status(404).json({ error: `API route ${req.method} ${req.url} not found` });
   });
 
   // Vite middleware for development
